@@ -58,32 +58,21 @@ class MainActivity : AppCompatActivity() {
         editText = findViewById(R.id.et_view)
         btn?.setOnClickListener {
             showInput(editText!!)
+            viewModel?.getLatestImage(null)
             if(!TextUtils.isEmpty(currentImage)){
-                ExampleCardPopup(btn!!.context, currentImage!!).let {
-                    it.width = TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP,
-                        90f,
-                        resources.displayMetrics
-                    ).toInt()
-                    it.height = TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP,
-                        135f,
-                        resources.displayMetrics
-                    ).toInt()
-                    val vertPos = RelativePopupWindow.VerticalPosition.ABOVE
-                    val horizPos = RelativePopupWindow.HorizontalPosition.CENTER
-                    val fitInScreen = true
+                LatestImagePop(btn!!.context, currentImage!!).let {
                     Glide.with(this).load(currentImage).into(imageView)
-                    it.showOnAnchor(btn!!, vertPos, horizPos, fitInScreen)
+                    it.showPop(btn!!)
                 }
+
             }else {
                 viewModel?.getLatestImage(null)
             }
         }
         viewModel.lvMediaData.observe(this, Observer { data ->
             currentImage = data[0]?.path!!
-            LatestImagePop(btn!!.context, data[0]?.path!!).let {
-                Glide.with(this).load(data[0].path).into(imageView)
+            LatestImagePop(btn!!.context, currentImage!!).let {
+                Glide.with(this).load(currentImage).into(imageView)
                 it.showPop(btn!!)
             }
 
