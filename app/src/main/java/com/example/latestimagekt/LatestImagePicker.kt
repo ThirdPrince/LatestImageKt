@@ -35,7 +35,7 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
         MediaStore.Images.Media.WIDTH,  //图片的宽度，int型  1920
         MediaStore.Images.Media.HEIGHT,  //图片的高度，int型  1080
         MediaStore.Images.Media.MIME_TYPE,  //图片的类型     image/jpeg
-        MediaStore.Images.Media.DATE_MODIFIED //图片被添加的时间，long型  1450518608
+        MediaStore.Images.Media.DATE_ADDED //图片被添加的时间，long型  1450518608
     )
 
     private val _lvImageData = MutableLiveData<List<ImageItem>>()
@@ -107,7 +107,9 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
                 val imageAddTime: Long =
                     data.getLong(data.getColumnIndexOrThrow(imageProjection[6]))
                 imageItem.path = imagePath
+                imageItem.addTime = imageAddTime
                 Log.e(TAG,"path${imagePath}}")
+                Log.e(TAG,"addTime${imageItem.addTime}}")
                 imageItemList.add(imageItem)
             }
 

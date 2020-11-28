@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import android.util.TypedValue
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
@@ -33,7 +34,7 @@ class MainActivity : AppCompatActivity() {
     var permissionArray = arrayOf(permissions)
     var btn: Button? = null
     var editText: EditText? = null
-    var  currentImage: String? = null
+    var  currentImageItem: ImageItem? = null
     var imageView: ImageView? = null
 
     lateinit var viewModel: LatestImagePicker
@@ -48,33 +49,35 @@ class MainActivity : AppCompatActivity() {
         ).get(LatestImagePicker::class.java)
         val checkPermission = this?.let { ActivityCompat.checkSelfPermission(it, permissions) }
         if (checkPermission == PackageManager.PERMISSION_GRANTED) {
-            //执行到这里说明用户已经申请了权限直接加载数据就可以
-            //  viewModel?.getLatestImage(null)
+            viewModel.getLatestImage(null)
         } else {
             requestPermissions(permissionArray, 0)
         }
         btn = findViewById(R.id.photo_btn)
         imageView = findViewById(R.id.image)
         editText = findViewById(R.id.et_view)
+        Log.e(TAG,"sysTime ${System.currentTimeMillis()}")
         btn?.setOnClickListener {
             showInput(editText!!)
-            viewModel?.getLatestImage(null)
-            if(!TextUtils.isEmpty(currentImage)){
-                LatestImagePop(btn!!.context, currentImage!!).let {
-                    Glide.with(this).load(currentImage).into(imageView)
-                    it.showPop(btn!!)
+            currentImageItem?.let {
+                if((System.currentTimeMillis()/1000 - 8) <it.addTime) { // 当前时间和 图片的时间差小于 8S 才展示
+                    if (!TextUtils.isEmpty(it.path)) {
+                        LatestImagePop(btn!!.context, it.path!!).showPop(btn!!)
+
+                    }
+                    currentImageItem = null
                 }
 
-            }else {
-                viewModel?.getLatestImage(null)
             }
         }
         viewModel.lvMediaData.observe(this, Observer { data ->
-            currentImage = data[0]?.path!!
-            LatestImagePop(btn!!.context, currentImage!!).let {
+            currentImageItem = data[0]
+            Glide.with(this).load(currentImageItem!!.path).into(imageView)
+            /*LatestImagePop(btn!!.context, currentImage!!).let {
                 Glide.with(this).load(currentImage).into(imageView)
                 it.showPop(btn!!)
-            }
+                currentImage = null
+            }*/
 
         })
         viewModel.lvDataChanged.observe(this, Observer {
@@ -94,7 +97,7 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             0 ->
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
+                    viewModel.getLatestImage(null)
                 }
         }
 
