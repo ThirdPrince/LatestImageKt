@@ -72,7 +72,6 @@ class MainActivity : AppCompatActivity() {
         }
         viewModel.lvMediaData.observe(this, Observer { data ->
             currentImageItem = data[0]
-            Log.e(TAG,"lvDataChanged = ${currentImageItem!!.path}")
             Glide.with(this).load(currentImageItem!!.path).into(imageView)
         })
         viewModel.lvDataChanged.observe(this, Observer {

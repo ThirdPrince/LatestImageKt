@@ -27,6 +27,9 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
 
     private val imageType = arrayOf("image/png", "image/jpeg")
 
+    /**
+     * 判断图片的路径 是否截屏
+     */
     private val screenShoot = arrayOf(
         "screenshot", "screen_shot", "screen-sh", "screen shot",
         "screencapture", "screen_capture ", "screen-capture", "screen capture",
