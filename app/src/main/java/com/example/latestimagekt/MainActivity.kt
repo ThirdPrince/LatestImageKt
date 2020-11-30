@@ -13,6 +13,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -56,11 +57,10 @@ class MainActivity : AppCompatActivity() {
         btn = findViewById(R.id.photo_btn)
         imageView = findViewById(R.id.image)
         editText = findViewById(R.id.et_view)
-        Log.e(TAG,"sysTime ${System.currentTimeMillis()}")
         btn?.setOnClickListener {
             showInput(editText!!)
             currentImageItem?.let {
-                if((System.currentTimeMillis()/1000 - 8) <it.addTime) { // 当前时间和 图片的时间差小于 8S 才展示
+                if((System.currentTimeMillis()/1000 - 12) <it.addTime) { // 当前时间和 图片的时间差小于 8S 才展示
                     if (!TextUtils.isEmpty(it.path)) {
                         LatestImagePop(btn!!.context, it.path!!).showPop(btn!!)
 
@@ -72,16 +72,15 @@ class MainActivity : AppCompatActivity() {
         }
         viewModel.lvMediaData.observe(this, Observer { data ->
             currentImageItem = data[0]
+            Log.e(TAG,"lvDataChanged = ${currentImageItem!!.path}")
             Glide.with(this).load(currentImageItem!!.path).into(imageView)
-            /*LatestImagePop(btn!!.context, currentImage!!).let {
-                Glide.with(this).load(currentImage).into(imageView)
-                it.showPop(btn!!)
-                currentImage = null
-            }*/
-
         })
         viewModel.lvDataChanged.observe(this, Observer {
+
             viewModel.getLatestImage(null)
+        })
+        viewModel.imageIsScreenShotData.observe(this, Observer {
+            Toast.makeText(this,"你截屏了！",Toast.LENGTH_LONG).show()
         })
 
 

@@ -21,14 +21,23 @@ import kotlinx.coroutines.withContext
 class LatestImagePicker(application: Application) : BaseViewModel(application) {
 
 
-    companion object{
+    companion object {
         const val TAG = "LatestImagePicker"
     }
-    private val imageType = arrayOf("image/png","image/jpeg")
+
+    private val imageType = arrayOf("image/png", "image/jpeg")
+
+    private val screenShoot = arrayOf(
+        "screenshot", "screen_shot", "screen-sh", "screen shot",
+        "screencapture", "screen_capture ", "screen-capture", "screen capture",
+        "screencap", "screen_cap", "screen-cap", "screen cap"
+    )
+
+
     /**
      * 至少需要高宽，时间
      */
-    private  val imageProjection = arrayOf( //查询图片需要的数据列
+    private val imageProjection = arrayOf( //查询图片需要的数据列
         MediaStore.Images.Media.BUCKET_DISPLAY_NAME,  //图片的显示名称  aaa.jpg
         MediaStore.Images.Media.DATA,  //图片的真实路径  /storage/emulated/0/pp/downloader/wallpaper/aaa.jpg
         MediaStore.Images.Media.SIZE,  //图片的大小，long型  132492
@@ -46,15 +55,20 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
 
     private val _lvDataChanged = MutableLiveData<Boolean>()
 
+    private val _imageIsScreenShotData = MutableLiveData<Boolean>()
+
+    val imageIsScreenShotData :LiveData<Boolean>
+       get() = _imageIsScreenShotData
+
     val lvDataChanged: LiveData<Boolean>
         get() = _lvDataChanged
 
     private var contentObserver: ContentObserver? = null
 
-    private fun registerContentObserver(){
+    private fun registerContentObserver() {
         if (contentObserver == null) {
             contentObserver = getApplication<Application>().contentResolver.registerObserver(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             ) {
                 _lvDataChanged.value = true
             }
@@ -62,12 +76,19 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
     }
 
 
-
     fun getLatestImage(bucketId: String? = null) {
         launchDataLoad {
             val imageItems = queryImages(bucketId)
             _lvImageData.postValue(imageItems)
             registerContentObserver()
+            val imagePath = imageItems[0].path!!.toLowerCase()
+            screenShoot.forEach {
+                if(imagePath!!.contains(it) && (System.currentTimeMillis()/1000-imageItems[0].addTime < 1)) {
+                    _imageIsScreenShotData.postValue(true)
+                    return@forEach
+                }
+
+            }
         }
     }
 
@@ -83,11 +104,17 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
 
 
             var selection = (MediaStore.Files.FileColumns.MEDIA_TYPE + "="
-                    + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE)+
-            " AND " + MediaStore.Images.Media.MIME_TYPE + "=?"+
-            " or " + MediaStore.Images.Media.MIME_TYPE + "=?"
+                    + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE) +
+                    " AND " + MediaStore.Images.Media.MIME_TYPE + "=?" +
+                    " or " + MediaStore.Images.Media.MIME_TYPE + "=?"
 
-            val data = getApplication<Application>().contentResolver.query(uri, imageProjection, selection, imageType, sortOrder)
+            val data = getApplication<Application>().contentResolver.query(
+                uri,
+                imageProjection,
+                selection,
+                imageType,
+                sortOrder
+            )
             val imageItem = ImageItem()
             if (data!!.moveToFirst()) {
                 //查询数据
@@ -108,15 +135,13 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
                     data.getLong(data.getColumnIndexOrThrow(imageProjection[6]))
                 imageItem.path = imagePath
                 imageItem.addTime = imageAddTime
-                Log.e(TAG,"path${imagePath}}")
-                Log.e(TAG,"addTime${imageItem.addTime}}")
+                Log.e(TAG, "path=${imagePath}}")
                 imageItemList.add(imageItem)
             }
 
         }
         return imageItemList
     }
-
 
 
     override fun onCleared() {
@@ -134,9 +159,11 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
                 observer(selfChange)
             }
         }
+        // notifyForDescendants true 华为手机上 传值 false 会有延迟
         registerContentObserver(uri, true, contentObserver)
         return contentObserver
     }
 }
+
 
 
