@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         viewModel.lvMediaData.observe(this, Observer { data ->
-            currentImageItem = data[0]
+            currentImageItem = data
             Glide.with(this).load(currentImageItem!!.path).into(imageView)
         })
         viewModel.lvDataChanged.observe(this, Observer {

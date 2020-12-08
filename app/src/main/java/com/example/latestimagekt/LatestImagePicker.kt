@@ -50,9 +50,9 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
         MediaStore.Images.Media.DATE_ADDED //图片被添加的时间，long型  1450518608
     )
 
-    private val _lvImageData = MutableLiveData<List<ImageItem>>()
+    private val _lvImageData = MutableLiveData<ImageItem>()
 
-    val lvMediaData: LiveData<List<ImageItem>>
+    val lvMediaData: LiveData<ImageItem>
         get() = _lvImageData
 
 
@@ -84,9 +84,9 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
             val imageItems = queryImages(bucketId)
             _lvImageData.postValue(imageItems)
             registerContentObserver()
-            val imagePath = imageItems[0].path!!.toLowerCase()
+            val imagePath = imageItems.path!!.toLowerCase()
             screenShoot.forEach {
-                if(imagePath!!.contains(it) && (System.currentTimeMillis()/1000-imageItems[0].addTime < 1)) {
+                if(imagePath!!.contains(it) && (System.currentTimeMillis()/1000-imageItems.addTime < 1)) {
                     _imageIsScreenShotData.postValue(true)
                     return@forEach
                 }
@@ -99,8 +99,9 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
      * 只获取普通图片，不获取Gif
      */
     @WorkerThread
-    suspend fun queryImages(bucketId: String?): MutableList<ImageItem> {
-        var imageItemList = mutableListOf<ImageItem>()
+    suspend fun queryImages(bucketId: String?):ImageItem {
+       // var imageItemList = mutableListOf<ImageItem>()
+        val imageItem = ImageItem()
         withContext(Dispatchers.IO) {
             val uri = MediaStore.Files.getContentUri("external")
             val sortOrder = MediaStore.Images.Media._ID + " DESC limit 1 "
@@ -118,7 +119,7 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
                 imageType,
                 sortOrder
             )
-            val imageItem = ImageItem()
+
             if (data!!.moveToFirst()) {
                 //查询数据
 
@@ -138,12 +139,11 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
                     data.getLong(data.getColumnIndexOrThrow(imageProjection[6]))
                 imageItem.path = imagePath
                 imageItem.addTime = imageAddTime
-                Log.e(TAG, "path=${imagePath}}")
-                imageItemList.add(imageItem)
+                //Log.e(TAG, "path=${imagePath}}")
             }
 
         }
-        return imageItemList
+        return imageItem
     }
 
 
@@ -153,19 +153,6 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
         }
     }
 
-    fun ContentResolver.registerObserver(
-        uri: Uri,
-        observer: (selfChange: Boolean) -> Unit
-    ): ContentObserver {
-        val contentObserver = object : ContentObserver(Handler()) {
-            override fun onChange(selfChange: Boolean) {
-                observer(selfChange)
-            }
-        }
-        // notifyForDescendants true 华为手机上 传值 false 会有延迟
-        registerContentObserver(uri, true, contentObserver)
-        return contentObserver
-    }
 }
 
 
