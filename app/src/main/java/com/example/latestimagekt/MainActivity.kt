@@ -6,9 +6,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
-import android.util.Log
-import android.util.TypedValue
-import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
@@ -19,8 +16,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.labo.kaji.relativepopupwindow.RelativePopupWindow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class MainActivity : AppCompatActivity() {
@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
     var  currentImageItem: ImageItem? = null
     var imageView: ImageView? = null
 
-    lateinit var viewModel: LatestImagePicker
+    lateinit var viewModel: LatestImagePickerViewModel
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,13 +47,14 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(
             this,
             ViewModelProvider.AndroidViewModelFactory(this.application)
-        ).get(LatestImagePicker::class.java)
+        ).get(LatestImagePickerViewModel::class.java)
         val checkPermission = this?.let { ActivityCompat.checkSelfPermission(it, permissions) }
         if (checkPermission == PackageManager.PERMISSION_GRANTED) {
             viewModel.getLatestImage(null)
         } else {
             requestPermissions(permissionArray, 0)
         }
+
         btn = findViewById(R.id.photo_btn)
         imageView = findViewById(R.id.image)
         editText = findViewById(R.id.et_view)

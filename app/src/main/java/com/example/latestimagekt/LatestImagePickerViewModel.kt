@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
  * ViewModel 查询最近保存的图片
  * 需要 application 实例，查询数据库
  */
-class LatestImagePicker(application: Application) : BaseViewModel(application) {
+class LatestImagePickerViewModel(application: Application) : BaseViewModel(application) {
 
 
     companion object {
@@ -100,13 +100,10 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
      */
     @WorkerThread
     suspend fun queryImages(bucketId: String?):ImageItem {
-       // var imageItemList = mutableListOf<ImageItem>()
         val imageItem = ImageItem()
         withContext(Dispatchers.IO) {
             val uri = MediaStore.Files.getContentUri("external")
             val sortOrder = MediaStore.Images.Media._ID + " DESC limit 1 "
-
-
             var selection = (MediaStore.Files.FileColumns.MEDIA_TYPE + "="
                     + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE) +
                     " AND " + MediaStore.Images.Media.MIME_TYPE + "=?" +
@@ -122,7 +119,6 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
 
             if (data!!.moveToFirst()) {
                 //查询数据
-
                 val imageId: String =
                     data.getString(data.getColumnIndexOrThrow(imageProjection[0]))
                 val imagePath: String =
@@ -139,7 +135,6 @@ class LatestImagePicker(application: Application) : BaseViewModel(application) {
                     data.getLong(data.getColumnIndexOrThrow(imageProjection[6]))
                 imageItem.path = imagePath
                 imageItem.addTime = imageAddTime
-                //Log.e(TAG, "path=${imagePath}}")
             }
 
         }
