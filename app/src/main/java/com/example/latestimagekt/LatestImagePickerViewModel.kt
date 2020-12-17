@@ -15,6 +15,7 @@ import kotlinx.coroutines.withContext
 
 
 /**
+ * @author dhl
  * ViewModel 查询最近保存的图片
  * 需要 application 实例，查询数据库
  */
