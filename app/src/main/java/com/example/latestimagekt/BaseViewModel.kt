@@ -5,8 +5,9 @@ import androidx.lifecycle.*
 import kotlinx.coroutines.*
 
 /**
- * 获取最新图片的VM
  * @author dhl
+ * 封装协程
+ * 获取最新图片的VM
  */
 open class BaseViewModel(application: Application) : AndroidViewModel(application) {
 
